@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סימולטור חקר: 13 המושבות בשילוב AI</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .student-info {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            border-right: 5px solid var(--accent);
+        }
+
+        .student-info input {
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: var(--card);
+            color: var(--primary);
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary);
+        }
+
+        .section {
+            display: none;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 0 12px 12px 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .prompt-box {
+            background: #eff6ff;
+            border: 1px dashed var(--secondary);
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .prompt-text {
+            font-family: monospace;
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+
+        .btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+        }
+
+        .btn-success {
+            background: var(--success);
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.8rem;
+            text-align: right;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            width: 25%;
+        }
+
+        textarea, select, input[type="text"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .step-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .box-card {
+            background: #f8fafc;
+            padding: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1.2rem;
+        }
+
+        .qa-pair {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            border-right: 4px solid var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        .qa-pair label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.3rem;
+            color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .export-area {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🧭 מעבדת חקר היסטורית: 13 המושבות</h1>
+    <p>סימולטור למידה בשילוב בינה מלאכותית (AI) | כיתת נחשון - כיתה ח'</p>
+</header>
+
+<div class="container">
+
+    <!-- פרטי התלמיד -->
+    <div class="student-info">
+        <strong>פרטי התלמיד/ה:</strong>
+        <input type="text" id="studentName" placeholder="שם מלא (חובה)" oninput="saveProgress()">
+        <input type="text" id="studentClass" placeholder="כיתה (למשל: ח'2)" oninput="saveProgress()">
+        <input type="text" id="aiToolUsed" placeholder="כלי AI בשימוש (למשל: ChatGPT, Gemini)" oninput="saveProgress()">
+    </div>
+
+    <!-- לשוניות ניווט -->
+    <div class="tabs">
+        <button class="tab-btn active" id="btn-partA" onclick="switchTab('partA')">חלק א': מיפוי ובדיקת עובדות</button>
+        <button class="tab-btn" id="btn-partB" onclick="switchTab('partB')">חלק ב': ראיון עם מתיישב מהעבר</button>
+        <button class="tab-btn" id="btn-submitTab" onclick="switchTab('submitTab')">סיום והורדת עבודה להגשה</button>
+    </div>
+
+    <!-- חלק א -->
+    <div id="partA" class="section active">
+        <span class="step-badge">שלב 1 מתוך 2</span>
+        <h2>חלק א': AI כעוזר מחקר – מיפוי אזורי המושבות</h2>
+        <p>13 המושבות נחלקו לשלושה אזורים גיאוגרפיים: <strong>ניו אינגלנד (צפון)</strong>, <strong>מושבות המרכז</strong> ו<strong>מושבות הדרום</strong>.</p>
+
+        <div class="prompt-box">
+            <strong>🤖 הנחיה (פרומפט) להעתקה לכלי ה-AI:</strong>
+            <div class="prompt-text" id="promptA">סכם עבורי בטבלה ברורה את ההבדלים בין שלושת אזורי 13 המושבות הבריטיות באמריקה (ניו אינגלנד, מושבות המרכז, מושבות הדרום) מבחינת: 1. שמות המושבות בכל אזור. 2. תנאי אקלים וקרקע. 3. ענפי כלכלה מרכזיים. 4. מאפיינים חברתיים ודתיים בולטים.</div>
+            <button class="btn" onclick="copyText('promptA')">📋 העתק פרומפט ללוח</button>
+        </div>
+
+        <p><strong>✍️ משימת עיבוד ובקרה:</strong> קראו את תשובת ה-AI, הצליבו את המידע מול ספר הלימוד או מקור אמין ברשת, ומלאו את הטבלה <strong>במילים שלכם</strong>:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>מאפיין / אזור</th>
+                    <th>מושבות ניו אינגלנד (צפון)</th>
+                    <th>מושבות המרכז</th>
+                    <th>מושבות הדרום</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>שמות המושבות</strong></td>
+                    <td><textarea id="t_ne_names" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_mid_names" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_south_names" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                </tr>
+                <tr>
+                    <td><strong>אקלים ותנאי קרקע</strong></td>
+                    <td><textarea id="t_ne_climate" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_mid_climate" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_south_climate" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                </tr>
+                <tr>
+                    <td><strong>ענפי כלכלה מרכזיים</strong></td>
+                    <td><textarea id="t_ne_econ" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_mid_econ" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_south_econ" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                </tr>
+                <tr>
+                    <td><strong>מאפיינים חברתיים ודתיים</strong></td>
+                    <td><textarea id="t_ne_soc" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_mid_soc" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                    <td><textarea id="t_south_soc" rows="3" placeholder="כתבו כאן..." oninput="saveProgress()"></textarea></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="box-card">
+            <label for="factCheck"><strong>🔍 בדיקת עובדות (Fact-Checking) – חשיבה ביקורתית:</strong></label>
+            <p style="margin-top:0.3rem; font-size:0.9rem; color:#475569;">בחרו אזור אחד ובדקו את תשובת ה-AI מול ספר הלימוד או אנציקלופדיה. האם מצאתם אי-דיוקים או מידע חשוב שה-AI השמיט? פרטו (2–3 משפטים):</p>
+            <textarea id="factCheck" rows="3" placeholder="כתבו כאן את ממצאי הבדיקה שלכם..." oninput="saveProgress()"></textarea>
+        </div>
+
+        <button class="btn" onclick="switchTab('partB')">המשך לחלק ב' ⬅️</button>
+    </div>
+
+    <!-- חלק ב -->
+    <div id="partB" class="section">
+        <span class="step-badge">שלב 2 מתוך 2</span>
+        <h2>חלק ב': "ראיון עם ההיסטוריה" – סימולציה חיה</h2>
+        <p>בחרו מושבה מתוך הרשימה המלאה של 13 המושבות, והסימולטור יבנה עבורכם פרומפט מיוחד שיהפוך את ה-AI למתיישב אמיתי משנת 1750!</p>
+
+        <div class="box-card">
+            <label for="colonySelect"><strong>1. בחרו מושבה לראיון (מתוך 13 המושבות):</strong></label>
+            <select id="colonySelect" onchange="updateColonyPrompt(); saveProgress();" style="max-width: 350px; margin-top: 0.5rem; display: block;">
+                <option value="מסצ'וסטס (ניו אינגלנד)">מסצ'וסטס (ניו אינגלנד)</option>
+                <option value="רוד איילנד (ניו אינגלנד)">רוד איילנד (ניו אינגלנד)</option>
+                <option value="קונטיקט (ניו אינגלנד)">קונטיקט (ניו אינגלנד)</option>
+                <option value="ניו המפשייר (ניו אינגלנד)">ניו המפשייר (ניו אינגלנד)</option>
+                <option value="ניו יורק (מושבות המרכז)">ניו יורק (מושבות המרכז)</option>
+                <option value="פנסילבניה (מושבות המרכז)">פנסילבניה (מושבות המרכז)</option>
+                <option value="ניו ג'רזי (מושבות המרכז)">ניו ג'רזי (מושבות המרכז)</option>
+                <option value="דלאוור (מושבות המרכז)">דלאוור (מושבות המרכז)</option>
+                <option value="וירג'יניה (מושבות הדרום)">וירג'יניה (מושבות הדרום)</option>
+                <option value="מרילנד (מושבות הדרום)">מרילנד (מושבות הדרום)</option>
+                <option value="קרוליינה הצפונית (מושבות הדרום)">קרוליינה הצפונית (מושבות הדרום)</option>
+                <option value="קרוליינה הדרומית (מושבות הדרום)">קרוליינה הדרומית (מושבות הדרום)</option>
+                <option value="ג'ורג'יה (מושבות הדרום)">ג'ורג'יה (מושבות הדרום)</option>
+            </select>
+        </div>
+
+        <div class="prompt-box">
+            <strong>🎭 2. העתיקו את פרומפט הסימולציה לכלי ה-AI והתחילו לראיין:</strong>
+            <div class="prompt-text" id="promptB">התנהג כמתיישב/ת שחי/ה במושבת מסצ'וסטס (ניו אינגלנד) בשנת 1750. אני עיתונאי/ת שמראיין אותך. ענה לי בגוף ראשון, בהתבסס על עובדות היסטוריות אמיתיות בלבד מאותה תקופה, על החיים במושבה, הסיבות שבגללן הגעת לשם, הקשיים, הפרנסה והיחסים עם השלטון הבריטי והילידים. המתן לשאלות שלי וענה בכל פעם על שאלה אחת בצורה מפורטת ואותנטית.</div>
+            <button class="btn" onclick="copyText('promptB')">📋 העתק פרומפט סימולציה</button>
+        </div>
+
+        <h3>🎙️ 3. תיעוד הראיון (שאלו את הדמות 4 שאלות עומק ותעדו כאן):</h3>
+        <p style="font-size: 0.9rem; color: #475569;">טיפ של חוקרים: אל תשאלו שאלות של "כן/לא". שאלו על חופש דת, יוקר מחיה, יחס לעבדות, יחסים עם השבטים המקומיים או חוקי המלך הבריטי.</p>
+
+        <div class="qa-pair">
+            <label for="q1">שאלה 1 ששאלתם:</label>
+            <input type="text" id="q1" placeholder="כתבו את השאלה שלכם..." style="margin-bottom:0.6rem;" oninput="saveProgress()">
+            <label for="a1">עיקרי תשובת הדמות (במילים שלכם):</label>
+            <textarea id="a1" rows="2" placeholder="סכמו בקצרה מה ענתה הדמות..." oninput="saveProgress()"></textarea>
+        </div>
+
+        <div class="qa-pair">
+            <label for="q2">שאלה 2 ששאלתם:</label>
+            <input type="text" id="q2" placeholder="כתבו את השאלה שלכם..." style="margin-bottom:0.6rem;" oninput="saveProgress()">
+            <label for="a2">עיקרי תשובת הדמות (במילים שלכם):</label>
+            <textarea id="a2" rows="2" placeholder="סכמו בקצרה מה ענתה הדמות..." oninput="saveProgress()"></textarea>
+        </div>
+
+        <div class="qa-pair">
+            <label for="q3">שאלה 3 ששאלתם:</label>
+            <input type="text" id="q3" placeholder="כתבו את השאלה שלכם..." style="margin-bottom:0.6rem;" oninput="saveProgress()">
+            <label for="a3">עיקרי תשובת הדמות (במילים שלכם):</label>
+            <textarea id="a3" rows="2" placeholder="סכמו בקצרה מה ענתה הדמות..." oninput="saveProgress()"></textarea>
+        </div>
+
+        <div class="qa-pair">
+            <label for="q4">שאלה 4 ששאלתם:</label>
+            <input type="text" id="q4" placeholder="כתבו את השאלה שלכם..." style="margin-bottom:0.6rem;" oninput="saveProgress()">
+            <label for="a4">עיקרי תשובת הדמות (במילים שלכם):</label>
+            <textarea id="a4" rows="2" placeholder="סכמו בקצרה מה ענתה הדמות..." oninput="saveProgress()"></textarea>
+        </div>
+
+        <div class="box-card">
+            <label for="colonySummary"><strong>📝 4. סיכום מחקרי (תעודת זהות למושבה):</strong></label>
+            <p style="margin-top:0.3rem; font-size:0.9rem; color:#475569;">כתבו פסקה מסכמת (8–10 שורות) המציגה את המושבה שחקרתם: מתי ומי הקים אותה, מדוע הוקמה, מי חי בה, ומה מייחד אותה משאר המושבות.</p>
+            <textarea id="colonySummary" rows="5" placeholder="כתבו כאן את הסיכום שלכם במילים שלכם..." oninput="saveProgress()"></textarea>
+        </div>
+
+        <button class="btn" onclick="switchTab('submitTab')">סיום והכנה להגשה ⬅️</button>
+    </div>
+
+    <!-- סיום והגשה -->
+    <div id="submitTab" class="section">
+        <h2>🏁 סיום המטלה והורדת קובץ להגשה</h2>
+        <p>כל הכבוד! סיימתם את חלקי המחקר והסימולציה.</p>
+        <ul>
+            <li>ודאו שמילאתם את <strong>שמכם המלא</strong> בראש העמוד.</li>
+            <li>ודאו שכל התשובות כתובות <strong>במילים שלכם</strong> ולא בהעתקה גולמית.</li>
+            <li>לחצו על הכפתור הירוק למטה כדי להוריד קובץ מסודר עם כל התשובות שלכם, והעלו אותו למרחב הכיתתי (קלאסרום / מודל).</li>
+        </ul>
+
+        <div class="export-area">
+            <button class="btn btn-success" onclick="downloadWork()">📥 הורד את העבודה המוכנה למחשב (.txt)</button>
+            <p style="margin-top: 1rem; font-size: 0.9rem; color: #166534;">הקובץ יישמר בתיקיית "הורדות" (Downloads) במחשב שלכם.</p>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast" class="toast">הטקסט הועתק ללוח! הדביקו אותו בכלי ה-AI.</div>
+
+<script>
+    const fieldIds = [
+        'studentName', 'studentClass', 'aiToolUsed',
+        't_ne_names', 't_mid_names', 't_south_names',
+        't_ne_climate', 't_mid_climate', 't_south_climate',
+        't_ne_econ', 't_mid_econ', 't_south_econ',
+        't_ne_soc', 't_mid_soc', 't_south_soc',
+        'factCheck', 'colonySelect',
+        'q1', 'a1', 'q2', 'a2', 'q3', 'a3', 'q4', 'a4',
+        'colonySummary'
+    ];
+
+    window.onload = function() {
+        fieldIds.forEach(id => {
+            const saved = localStorage.getItem('sim13_' + id);
+            if (saved !== null) {
+                document.getElementById(id).value = saved;
+            }
+        });
+        updateColonyPrompt();
+    };
+
+    function saveProgress() {
+        fieldIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                localStorage.setItem('sim13_' + id, el.value);
+            }
+        });
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('btn-' + tabId).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function copyText(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("הפרומפט הועתק! כעת הדביקו אותו ב-ChatGPT / Gemini.");
+        });
+    }
+
+    function updateColonyPrompt() {
+        const colony = document.getElementById('colonySelect').value;
+        const promptText = `התנהג כמתיישב/ת שחי/ה במושבת ${colony} בשנת 1750. אני עיתונאי/ת שמראיין אותך. ענה לי בגוף ראשון, בהתבסס על עובדות היסטוריות אמיתיות בלבד מאותה תקופה, על החיים במושבה, הסיבות שבגללן הגעת לשם, הקשיים, הפרנסה והיחסים עם השלטון הבריטי והילידים. המתן לשאלות שלי וענה בכל פעם על שאלה אחת בצורה מפורטת ואותנטית.`;
+        document.getElementById('promptB').innerText = promptText;
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+
+    function downloadWork() {
+        const name = document.getElementById('studentName').value.trim();
+        if (!name) {
+            alert("אנא הזינו את שמכם המלא בראש העמוד לפני הורדת הקובץ.");
+            document.getElementById('studentName').focus();
+            return;
+        }
+
+        const sClass = document.getElementById('studentClass').value.trim() || "לא צוין";
+        const aiTool = document.getElementById('aiToolUsed').value.trim() || "לא צוין";
+        const colony = document.getElementById('colonySelect').value;
+
+        let content = `====================================================
+`;
+        content += `מטלה א-סינכרונית: 13 המושבות בשילוב AI (כיתה ח' נחשון)
+`;
+        content += `====================================================
+
+`;
+        content += `שם התלמיד/ה: ${name}
+`;
+        content += `כיתה: ${sClass}
+`;
+        content += `כלי AI בשימוש: ${aiTool}
+
+`;
+
+        content += `----------------------------------------------------
+`;
+        content += `חלק א': מיפוי אזורי המושבות ובדיקת עובדות
+`;
+        content += `----------------------------------------------------
+
+`;
+        
+        content += `1. מושבות ניו אינגלנד (צפון):
+`;
+        content += `- שמות המושבות: ${document.getElementById('t_ne_names').value}
+`;
+        content += `- אקלים וקרקע: ${document.getElementById('t_ne_climate').value}
+`;
+        content += `- כלכלה: ${document.getElementById('t_ne_econ').value}
+`;
+        content += `- חברה ודת: ${document.getElementById('t_ne_soc').value}
+
+`;
+
+        content += `2. מושבות המרכז:
+`;
+        content += `- שמות המושבות: ${document.getElementById('t_mid_names').value}
+`;
+        content += `- אקלים וקרקע: ${document.getElementById('t_mid_climate').value}
+`;
+        content += `- כלכלה: ${document.getElementById('t_mid_econ').value}
+`;
+        content += `- חברה ודת: ${document.getElementById('t_mid_soc').value}
+
+`;
+
+        content += `3. מושבות הדרום:
+`;
+        content += `- שמות המושבות: ${document.getElementById('t_south_names').value}
+`;
+        content += `- אקלים וקרקע: ${document.getElementById('t_south_climate').value}
+`;
+        content += `- כלכלה: ${document.getElementById('t_south_econ').value}
+`;
+        content += `- חברה ודת: ${document.getElementById('t_south_soc').value}
+
+`;
+
+        content += `ממצאי בדיקת העובדות (Fact-Checking):
+${document.getElementById('factCheck').value}
+
+`;
+
+        content += `----------------------------------------------------
+`;
+        content += `חלק ב': ראיון היסטורי עם מתיישב ממושבת ${colony}
+`;
+        content += `----------------------------------------------------
+
+`;
+
+        for (let i = 1; i <= 4; i++) {
+            const q = document.getElementById(`q${i}`).value;
+            const a = document.getElementById(`a${i}`).value;
+            content += `שאלה ${i}: ${q}
+`;
+            content += `תשובת הדמות: ${a}
+
+`;
+        }
+
+        content += `סיכום מחקרי על המושבה:
+${document.getElementById('colonySummary').value}
+`;
+
+        const blob = new Blob(["﻿", content], { type: "text/plain;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `מטלת_13_המושבות_${name.replace(/\s+/g, '_')}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
